@@ -1,0 +1,89 @@
+{
+  "jobs": [
+    {
+      "id": "a82ba9043cbb",
+      "name": "Weekly Developer News Report",
+      "prompt": "Perform the following task:\n1. Visit the following 10 developer news sources to collect the most recent and relevant news:\n- Hacker News: https://news.ycombinator.com\n- Dev.to: https://dev.to\n- Hashnode: https://hashnode.com\n- TechCrunch: https://techcrunch.com\n- The Verge Tech: https://www.theverge.com/tech\n- InfoQ: https://www.infoq.com\n- Reddit r/programming: https://www.reddit.com/r/programming/\n- GitHub Blog: https://github.blog\n- AWS Blog: https://aws.amazon.com/blogs/aws/\n- Stack Overflow Blog: https://stackoverflow.blog\n\n2. Deep-dive into the top 10-20 most impactful stories. Actually read the articles to understand the core value and implications.\n3. Create a comprehensive summary for each.\n\n4. Prepare the output in TWO formats:\n   - A visual text report for WhatsApp with emojis, titles, bullet-point summaries, and URLs.\n   - A natural, conversational script intended for Text-to-Speech (TTS) that summarizes the most important highlights of the day in a friendly, engaging way.\n\n5. In the final delivery, use the `text_to_speech` tool to convert the conversational script into an audio file and include the MEDIA tag in the response along with the text report.\n\nFormat: \ud83d\ude80 DAILY DEV BRIEF (Text) followed by \ud83c\udf99\ufe0f AUDIO SUMMARY (Voice Note).",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": null,
+      "no_agent": false,
+      "context_from": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9 * * *",
+        "display": "0 9 * * *"
+      },
+      "schedule_display": "0 9 * * *",
+      "repeat": {
+        "times": null,
+        "completed": 19
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-06-08T09:12:27.335470+02:00",
+      "next_run_at": "2026-07-02T09:00:00+02:00",
+      "last_run_at": "2026-06-29T09:03:59.140913+02:00",
+      "last_status": "error",
+      "last_error": "RuntimeError: HTTP 429: Gemini HTTP 429 (RESOURCE_EXHAUSTED): Resource has been exhausted (e.g. check quota).",
+      "last_delivery_error": null,
+      "deliver": "origin",
+      "origin": {
+        "platform": "whatsapp",
+        "chat_id": "177017093931078@lid",
+        "chat_name": "mc\u2019 Dollar",
+        "thread_id": null
+      },
+      "enabled_toolsets": [
+        "web",
+        "terminal"
+      ],
+      "workdir": null,
+      "profile": null
+    },
+    {
+      "id": "d090ba6b3c18",
+      "name": "gemini-model-rotation",
+      "prompt": "Rotate Google Gemini models based on predefined weights to manage API quotas.",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": "rotate.sh",
+      "no_agent": true,
+      "context_from": null,
+      "schedule": {
+        "kind": "interval",
+        "minutes": 5,
+        "display": "every 5m"
+      },
+      "schedule_display": "every 5m",
+      "repeat": {
+        "times": null,
+        "completed": 24
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-06-29T21:11:41.743407+02:00",
+      "next_run_at": "2026-07-01T23:52:29.192860+02:00",
+      "last_run_at": "2026-07-01T23:47:29.192860+02:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "local",
+      "origin": null,
+      "enabled_toolsets": null,
+      "workdir": null,
+      "profile": null
+    }
+  ],
+  "updated_at": "2026-07-01T23:47:29.193345+02:00"
+}
