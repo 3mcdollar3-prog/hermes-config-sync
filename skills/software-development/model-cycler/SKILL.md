@@ -1,6 +1,6 @@
 ---
 name: model-cycler
-description: "Rotates the active Hermes model to exhaust specific rate limits."
+description: \"Rotates the active Hermes model to exhaust specific rate limits.\"
 ---
 
 # Model Cycler
@@ -14,39 +14,82 @@ This skill automates switching between high-throughput Gemini models to maximize
 hermes skills run model-cycler
 ```
 
-## Rotation List (Edit to change order)
-1. gemini-3.1-flash-lite
-2. gemini-2.5-flash
-3. gemini-3.5-flash
-4. gemini-3.1-pro-preview
+## Rotation List (Prioritized for Quota Recovery)
+1. gemma-4-26b-a4b-it
+2. gemma-4-31b-it
+3. gemini-2.5-flash
+4. gemini-2.5-pro
 5. gemini-3.1-flash
-6. gemini-2.5-pro
+6. gemini-3.1-flash-lite
+7. gemini-3.1-pro-preview
+
+## Fallback Provider Chain
+When all Google API keys and their model rotations are exhausted, Hermes falls back to Ollama Cloud:
+```yaml
+fallback_providers:
+  - provider: ollama-cloud
+    model: gemma4:31b-cloud
+```
+
+## Architecture: Google Primary → Model Rotation → Key Rotation → Ollama Fallback
+This skill implements the user's specified fallback hierarchy:
+
+1. **Primary Provider**: Google (gemini) via `credential_pool_strategies.gemini`
+2. **Model Rotation**: Round-robin through prioritized models (Gemma first) on *each* API key
+3. **Key Rotation**: When all models on a key exhaust quota (429/usage_limit_reached), pool rotates to next API key
+4. **Emergency Fallback**: When *all* Google keys exhausted, `fallback_providers` chain activates → Ollama Cloud
 
 ## Troubleshooting & Pitfalls
-- **Gemini Free Tier Quota Sharing**: Model aliases (like `gemini-flash-latest`) and their underlying models (like `gemini-3.5-flash`) often share the same free tier request limit (typically 20 RPM/250 RPD). Switching to an alias of the same model will not bypass rate limits if the limit is set at the metric level.
+- **Gemini Free Tier Quota Sharing**: Model aliases (like `gemini-flash-latest`) and their underlying models (like `gemini-3.5-flash`) often share the same free tier request limit. Switching to an alias of the same model will not bypass rate limits if the limit is set at the metric level.
 - **Resource Exhausted (429) Errors**: Inspect `~/.hermes/logs/errors.log` and `~/.hermes/logs/agent.log` for `RESOURCE_EXHAUSTED` or `generate_content_free_tier_requests` error messages.
 - **Native Rotation Config**: To ensure native rotation is seamless, `api_max_retries` should be set to at least 5 in `~/.hermes/config.yaml` to allow the engine to try multiple rotated models from the pool before raising a failure.
+- **Ollama Cloud Quota**: Ollama Cloud has a small quota (emergency backup only). Use `fill_first` strategy (configured in `credential_pool_strategies.ollama-cloud`) so it stays unused until explicitly needed.
+- **Credential Pool Seeding**: Multiple Google API keys must be added via `hermes auth add gemini` (or `GOOGLE_API_KEY` / `GEMINI_API_KEY` in `.env`) to enable key rotation. The pool auto-seeds from env vars with sources `env:GOOGLE_API_KEY`, `env:GEMINI_API_KEY`.
 
 ## Implementation
-This skill uses `hermes config set` to define a rotation list in `credential_pool_strategies`, which allows the Hermes core engine to natively rotate models on rate limits (429) without needing external scripts or gateway restarts.
+This skill uses `hermes config set` to define a rotation list in `credential_pool_strategies`, which allows the Hermes core engine to natively rotate models on rate limits (429) without needing external scripts or gateway restarts. The fallback chain is configured via `fallback_providers` in config.yaml.
 
 ## Configuration (Native Engine Integration)
-To enable native rotation for Gemini models, ensure your `~/.hermes/config.yaml` includes:
+To enable native rotation for Gemini models with Ollama fallback, ensure your `~/.hermes/config.yaml` includes:
 
 ```yaml
+model:
+  provider: gemini
+  default: gemini-2.5-flash
+  base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+
+fallback_providers:
+  - provider: ollama-cloud
+    model: gemma4:31b-cloud
+
 credential_pool_strategies:
+  ollama-cloud: fill_first
   gemini:
     rotation: round_robin
     models:
-      - gemini-3.1-flash-lite
+      - gemma-4-26b-a4b-it
+      - gemma-4-31b-it
       - gemini-2.5-flash
-      - gemini-3.5-flash
-      - gemini-3.1-pro-preview
-      - gemini-3.1-flash
       - gemini-2.5-pro
-```
-And ensure retries are set to handle the rotation window:
-```yaml
+      - gemini-3.1-flash
+      - gemini-3.1-flash-lite
+      - gemini-3.1-pro-preview
+
 agent:
   api_max_retries: 5
+```
+
+## Adding Multiple Google API Keys
+```bash
+# Add first key
+export GOOGLE_API_KEY=key1
+hermes auth add gemini --label \"google-key-1\"
+
+# Add second key 
+export GOOGLE_API_KEY=key2
+hermes auth add gemini --label \"google-key-2\"
+
+# Or add via ~/.hermes/.env (auto-seeded on startup)
+echo \"GOOGLE_API_KEY=key1\" >> ~/.hermes/.env
+echo \"GEMINI_API_KEY=key2\" >> ~/.hermes/.env
 ```

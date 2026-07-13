@@ -20,17 +20,17 @@
       "schedule_display": "0 9 * * *",
       "repeat": {
         "times": null,
-        "completed": 20
+        "completed": 27
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-06-08T09:12:27.335470+02:00",
-      "next_run_at": "2026-07-04T09:00:00+02:00",
-      "last_run_at": "2026-07-02T09:01:05.591506+02:00",
-      "last_status": "error",
-      "last_error": "RuntimeError: HTTP 429: Gemini HTTP 429 (RESOURCE_EXHAUSTED): Resource has been exhausted (e.g. check quota).",
+      "next_run_at": "2026-07-14T09:00:00+02:00",
+      "last_run_at": "2026-07-11T09:11:16.444837+02:00",
+      "last_status": "ok",
+      "last_error": null,
       "last_delivery_error": null,
       "deliver": "origin",
       "origin": {
@@ -66,15 +66,15 @@
       "schedule_display": "every 5m",
       "repeat": {
         "times": null,
-        "completed": 320
+        "completed": 2642
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-06-29T21:11:41.743407+02:00",
-      "next_run_at": "2026-07-03T23:49:59.253538+02:00",
-      "last_run_at": "2026-07-03T23:44:59.253538+02:00",
+      "next_run_at": "2026-07-13T22:59:09.564455+02:00",
+      "last_run_at": "2026-07-13T22:54:09.564455+02:00",
       "last_status": "ok",
       "last_error": null,
       "last_delivery_error": null,
@@ -85,5 +85,5 @@
       "profile": null
     }
   ],
-  "updated_at": "2026-07-03T23:44:59.254150+02:00"
+  "updated_at": "2026-07-13T22:54:09.564943+02:00"
 }
