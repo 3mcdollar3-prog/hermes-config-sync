@@ -18,9 +18,13 @@ STT allows the agent to "hear" voice notes. There are two primary paths:
 Using a provider like Groq or OpenAI Whisper.
 - **Pros:** Instant setup, high accuracy, low resource usage.
 - **Process:**
-  1. Obtain API key from provider (e.g., console.groq.com).
-  2. Set the provider in `config.yaml` or via `hermes config set stt.provider <provider>`.
-  3. Set the API key.
+  1. Obtain API key from provider (e.g., [console.groq.com](https://console.groq.com/)).
+  2. Configure provider:
+     ```bash
+     hermes config set stt.provider <provider> # e.g., groq
+     hermes config set stt.<provider>.model <model_name> # e.g., whisper-large-v3
+     ```
+  3. Add API key to `~/.hermes/.env` (e.g., `GROQ_API_KEY=...`).
   4. Enable STT: `hermes config set stt.enabled true`.
 
 ### Path B: Local Installation (`faster-whisper`)
@@ -28,15 +32,19 @@ Use this when API keys are unavailable or privacy is paramount.
 - **Pros:** Free, private, no API keys.
 - **Cons:** Heavy installation, higher CPU/RAM usage, slower transcription.
 
-**Installation Workflow (Linux):**
+## Installation Workflow (Linux)
 1. **Install Package:** Use `pip install faster-whisper`.
 2. **Handle PEP 668:** In modern Linux environments (like Debian/Ubuntu), `pip` may block system-wide installs.
-   - **Fix:** Use `--break-system-packages` flag if installing in a controlled agent environment where system stability is managed by the agent.
-   - **Alternative:** Create a dedicated virtual environment (`python3 -m venv venv`).
+   - **Fix 1:** Use `python3 -m pip install` within the local virtual environment.
+   - **Fix 2:** If the environment is a venv, ensure you are using the specific venv's pip: `/path/to/venv/bin/pip3 install faster-whisper`.
+   - **Note:** If installation times out (e.g., exit code 124 for large packages like `ctranslate2` or `onnxruntime`), re-run the command; it will resume or use cached files to complete.
 3. **Configure:** `hermes config set stt.enabled true`.
 4. **Apply:** Restart the Hermes gateway.
 
-## 🛠 Pitfalls & Troubleshooting
+### Pitfalls when driving
+- **Driving/Safety Interaction:** When interacting with an agent while driving, users cannot safely read long text responses. 
+- **Requirement:** Ensure all multi-paragraph or complex status updates are automatically followed by an Edge TTS (`text_to_speech`) call.
+- **Verification:** Always acknowledge that the user should "stay focused on the road" and deliver a compact text summary first, followed by the audio.
 
 ### The "Mirror" Loop (Digital Echo)
 **Symptom:** The agent starts echoing its own internal reasoning, timeouts, and system logs (`⚡ Interrupting current task`, `Operation interrupted`) back to the user as if they were user messages.

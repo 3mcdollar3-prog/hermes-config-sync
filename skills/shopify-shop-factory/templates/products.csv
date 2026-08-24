@@ -1,0 +1,3 @@
+Handle,Title,Body (HTML),Vendor,Type,Tags,Option1 Name,Option1 Value,Variant Price,Variant SKU,Image Src
+adala-shirt,Adala Classic T-Shirt,"<p>A premium quality cotton t-shirt with the Adala logo.</p>",Adala,Apparel,"classic, summer",Size,Medium,29.99,ADALA-TSHIRT-MD,https://yourdomain.com/images/shirt.jpg
+adala-hat,Adala Logo Cap,"<p>A stylish cap for everyday wear.</p>",Adala,Accessories,"cap, summer",One Size,Default,19.99,ADALA-CAP-OS,https://yourdomain.com/images/hat.jpg

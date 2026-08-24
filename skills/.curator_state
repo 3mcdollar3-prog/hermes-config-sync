@@ -1,9 +1,9 @@
 {
-  "last_report_path": "/home/pr3cision/.hermes/logs/curator/20260708-222747",
-  "last_run_at": "2026-07-08T22:27:47.031728+00:00",
-  "last_run_duration_seconds": 18.025456,
-  "last_run_summary": "auto: no changes; llm: There are only two agent-created skills: `hermes-sync` and `model-evaluation`. These two skills address completely different domains and do not form a prefix cluster. Their names are already descriptive and broad enough to serve as class-le…",
+  "last_report_path": "/home/mcdollar3/.hermes/logs/curator/20260821-041724",
+  "last_run_at": "2026-08-21T04:17:24.073341+00:00",
+  "last_run_duration_seconds": 4.262086,
+  "last_run_summary": "auto: 2 marked stale; llm: skipped (consolidation off)",
   "last_run_summary_shown_at": "2026-06-17T20:58:48.474597+00:00",
   "paused": false,
-  "run_count": 3
+  "run_count": 9
 }
