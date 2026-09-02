@@ -4,15 +4,16 @@ import os
 import subprocess
 import time
 import sys
+
 sys.path.append("/home/mcdollar3/.hermes/venv_stt/lib/python3.13/site-packages")
 try:
     import yaml
 except ImportError:
     import json
 
-
 CONFIG_PATH = os.path.expanduser("~/.hermes/config.yaml")
 STATE_FILE = os.path.expanduser("~/.hermes/scripts/model_state.json")
+ENV_PATH = os.path.expanduser("~/.hermes/.env")
 
 # Official Google Model Limits (RPM, TPM, RPD)
 MODEL_LIMITS = {
@@ -36,6 +37,26 @@ def save_config(config):
     with open(CONFIG_PATH, "w") as f:
         yaml.safe_dump(config, f, sort_keys=False)
 
+def get_api_keys():
+    env_vals = {}
+    if os.path.exists(ENV_PATH):
+        with open(ENV_PATH, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    parts = line.split("=", 1)
+                    env_vals[parts[0].strip()] = parts[1].strip()
+    
+    key_vars = ["GOOGLE_API_KEY", "GOOGLE_API_KEY_1", "GOOGLE_API_KEY_2", "GOOGLE_API_KEY_3", "GOOGLE_API_KEY_4", "GOOGLE_API_KEY_5", "GOOGLE_API_KEY_9", "GOOGLE_API_KEY_10", "GOOGLE_API_KEY_11"]
+    keys = []
+    for var in key_vars:
+        val = os.environ.get(var) or env_vals.get(var)
+        if val and not val.startswith("your_") and not val.startswith("[REDACTED]"):
+            keys.append(val)
+    if not keys:
+        keys = ["dummy_key"]
+    return keys
+
 def load_state():
     if os.path.exists(STATE_FILE):
         try:
@@ -43,7 +64,7 @@ def load_state():
                 return json.load(f)
         except Exception:
             pass
-    return {"usage": {}, "cooldowns": {}, "last_index": 0}
+    return {"usage": {}, "cooldowns": {}, "last_index": 0, "api_key_index": 0}
 
 def save_state(state):
     os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
@@ -72,45 +93,21 @@ def is_model_quota_exceeded(model_name, state):
     usage = state.get("usage", {}).get(model_name, {"requests": [], "daily_requests": 0, "daily_reset": time.time()})
     
     now = time.time()
-    
-    # 1. Check RPD (Daily requests - reset every 24h)
     if now - usage.get("daily_reset", now) > 86400:
         usage["daily_requests"] = 0
         usage["daily_reset"] = now
     
     if usage.get("daily_requests", 0) >= limits["rpd"]:
-        return True, "RPD (Daily Request Limit) Reached"
+        return True, "RPD Limit Reached"
 
-    # 2. Check RPM (Requests in last 60 seconds)
     reqs = usage.get("requests", [])
     recent_reqs = [t for t in reqs if now - t < 60]
     usage["requests"] = recent_reqs
     
     if len(recent_reqs) >= limits["rpm"]:
-        # Calculate exact seconds until oldest request drops out of the 60s window
-        reset_in = int(60 - (now - recent_reqs[0])) + 1
-        return True, f"RPM (Requests Per Minute) Limit Reached (Resets in {reset_in}s)"
+        return True, "RPM Limit Reached"
 
     return False, "Healthy"
-
-def record_request(model_name, tokens=1000):
-    state = load_state()
-    if "usage" not in state:
-        state["usage"] = {}
-    if model_name not in state["usage"]:
-        state["usage"][model_name] = {"requests": [], "daily_requests": 0, "daily_reset": time.time()}
-    
-    now = time.time()
-    usage = state["usage"][model_name]
-    
-    # Reset daily if needed
-    if now - usage.get("daily_reset", now) > 86400:
-        usage["daily_requests"] = 0
-        usage["daily_reset"] = now
-
-    usage["requests"].append(now)
-    usage["daily_requests"] += 1
-    save_state(state)
 
 def check_and_cooldown_failed_models(models, state):
     jobs_path = os.path.expanduser("~/.hermes/cron/jobs.json")
@@ -124,21 +121,22 @@ def check_and_cooldown_failed_models(models, state):
                 last_status = job.get("last_status")
                 last_error = job.get("last_error") or ""
                 last_run_at = job.get("last_run_at")
-                if last_status == "error" and any(err in last_error.lower() for err in ["429", "quota", "resource_exhausted", "rate limit"]):
+                # Handle both 429 and 501 errors
+                if last_status == "error" and any(err in last_error.lower() for err in ["429", "501", "quota", "resource_exhausted", "rate limit", "not implemented", "server error"]):
                     if state.get("last_handled_failure_time") == last_run_at:
-                        # Already handled this specific failure event
                         break
                     idx = state.get("last_index", 0)
                     if 0 <= idx < len(models):
                         failed_model = models[idx]
-                        cooldown_exp = state.get("cooldowns", {}).get(failed_model, 0)
-                        if cooldown_exp <= time.time():
-                            if "cooldowns" not in state:
-                                state["cooldowns"] = {}
-                            state["cooldowns"][failed_model] = time.time() + 600
-                            print(f"Auto-detected previous watchdog job failure (429) on model '{failed_model}'. Placing on 10-minute cooldown.")
-                            state["last_handled_failure_time"] = last_run_at
-                            save_state(state)
+                        if "cooldowns" not in state:
+                            state["cooldowns"] = {}
+                        state["cooldowns"][failed_model] = time.time() + 600
+                        print(f"Auto-detected error (429/501) on model '{failed_model}'. Placing on 10-minute cooldown and rotating API key.")
+                        # Advance API key index on error 429/501
+                        keys = get_api_keys()
+                        state["api_key_index"] = (state.get("api_key_index", 0) + 1) % len(keys)
+                        state["last_handled_failure_time"] = last_run_at
+                        save_state(state)
     except Exception as e:
         print(f"Error checking previous job status: {e}")
     return state
@@ -151,9 +149,9 @@ def rotate_model(force=False):
     now = time.time()
 
     current = get_current_model()
-    
-    # Find next model that is not quota-exceeded and not in explicit cooldown
     idx = state.get("last_index", 0)
+    api_key_idx = state.get("api_key_index", 0)
+    
     next_model = None
     selected_idx = idx
 
@@ -170,52 +168,55 @@ def rotate_model(force=False):
             selected_idx = candidate_idx
             break
 
+    keys = get_api_keys()
     if not next_model:
-        print("WARNING: All models have reached their Google rate limits / quotas! Resetting tracking windows.")
+        print("WARNING: All models on current API key exhausted! Rotating to next API key and resetting quotas.")
         state["usage"] = {}
         state["cooldowns"] = {}
+        api_key_idx = (api_key_idx + 1) % len(keys)
         next_model = models[0]
         selected_idx = 0
 
     state["last_index"] = selected_idx
+    state["api_key_index"] = api_key_idx
     save_state(state)
 
-    print(f"Smart-rotating model from {current} to {next_model} (Pool index {selected_idx}/{len(models)-1})")
+    selected_key = keys[api_key_idx % len(keys)]
+
+    print(f"Smart-rotating model from {current} to {next_model} (Pool index {selected_idx}/{len(models)-1}) | API Key Index: {api_key_idx}/{len(keys)-1}")
     
     try:
-        subprocess.run(
-            ["hermes", "config", "set", "model.default", next_model],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        print(f"Successfully updated Hermes model to {next_model}")
-    except Exception as e:
-        print(f"Error updating model via hermes config: {e}")
         config = load_config()
         if "model" not in config:
             config["model"] = {}
         config["model"]["default"] = next_model
+        config["model"]["api_key"] = selected_key
         save_config(config)
-        print(f"Updated config.yaml directly to {next_model}")
+        print(f"Successfully updated Hermes config with model {next_model} and API key index {api_key_idx}")
+    except Exception as e:
+        print(f"Error updating config: {e}")
 
 def mark_model_failed(model_name):
     state = load_state()
     if "cooldowns" not in state:
         state["cooldowns"] = {}
-    # 10 minute backoff on 429
     state["cooldowns"][model_name] = time.time() + 600
+    keys = get_api_keys()
+    state["api_key_index"] = (state.get("api_key_index", 0) + 1) % len(keys)
     save_state(state)
-    print(f"Model {model_name} hit rate-limit (429). Placed on 10-minute cooldown.")
+    print(f"Model {model_name} hit error (429/501). Placed on 10-minute cooldown and rotated to next API key.")
     rotate_model(force=False)
 
 def show_status():
     models = get_models_from_config()
     current = get_current_model()
     state = load_state()
+    keys = get_api_keys()
+    api_key_idx = state.get("api_key_index", 0)
     now = time.time()
 
     print(f"Current Active Model: {current}")
+    print(f"Current Active API Key Index: {api_key_idx} (Total Keys Available: {len(keys)})")
     print("\nQuota & Rate-Limit Tracking Status (Google Limits Integrated):")
     for idx, m in enumerate(models):
         limits = MODEL_LIMITS.get(m, {"rpm": 5, "tpm": 250000, "rpd": 20})
@@ -238,7 +239,6 @@ def show_status():
         print(f"     RPM: {rpm_current}/{limits['rpm']} | RPD: {rpd_current}/{limits['rpd']} | TPM Limit: {limits['tpm']:,}")
 
 if __name__ == "__main__":
-    import sys
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
         if cmd == "status":
