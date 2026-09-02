@@ -17,6 +17,7 @@ ENV_PATH = os.path.expanduser("~/.hermes/.env")
 
 # Official Google Model Limits (RPM, TPM, RPD)
 MODEL_LIMITS = {
+    "gemini-3.1-flash-live-preview": {"rpm": 5,  "tpm": 250000, "rpd": 20},
     "gemini-3.6-flash":      {"rpm": 5,  "tpm": 250000, "rpd": 20},
     "gemini-3.5-flash":      {"rpm": 5,  "tpm": 250000, "rpd": 20},
     "gemini-3.1-flash":      {"rpm": 5,  "tpm": 250000, "rpd": 20},
@@ -47,7 +48,7 @@ def get_api_keys():
                     parts = line.split("=", 1)
                     env_vals[parts[0].strip()] = parts[1].strip()
     
-    key_vars = ["GOOGLE_API_KEY", "GOOGLE_API_KEY_1", "GOOGLE_API_KEY_2", "GOOGLE_API_KEY_3", "GOOGLE_API_KEY_4", "GOOGLE_API_KEY_5", "GOOGLE_API_KEY_9", "GOOGLE_API_KEY_10", "GOOGLE_API_KEY_11"]
+    key_vars = ["GOOGLE_API_KEY", "GOOGLE_API_KEY_1", "GOOGLE_API_KEY_2", "GOOGLE_API_KEY_3", "GOOGLE_API_KEY_4", "GOOGLE_API_KEY_5", "GOOGLE_API_KEY_9", "GOOGLE_API_KEY_10", "GOOGLE_API_KEY_11", "GOOGLE_API_KEY_12", "GOOGLE_API_KEY_13", "GOOGLE_API_KEY_14"]
     keys = []
     for var in key_vars:
         val = os.environ.get(var) or env_vals.get(var)
