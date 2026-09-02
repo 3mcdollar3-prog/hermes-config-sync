@@ -17,3 +17,5 @@ User prefers a "Daily Dev Brief" report every day at 09:00 AM, featuring the top
 User prefers voice notes over text for certain interactions and expects a natural, non-robotic voice.
 §
 User prefers high-quality, natural-sounding voice notes (vibe of Sample 1 from Edge TTS) and dislikes robotic tones.
+§
+User prefers low-latency, real-time voice interactions with Gemini via the Live API.

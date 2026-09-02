@@ -1,19 +1,23 @@
-The user has a working video downloader environment at /home/pr3cision/Desktop/video_downloader_webapp with a specific venv and yt-dlp binary that is more successful than standard global installations.
+User prefers direct communication and clear task focus.
 §
-User has a YouTube/Instagram downloader at /home/pr3cision/Desktop/video_downloader_webapp. The app.py requires a venv at /home/pr3cision/Desktop/video_downloader_webapp/venv. Instagram reels may require DASH format merging via yt-dlp for video playback.
+Gemini model rotation is set to fill_first across 9 ordered models, using smart_rotate.py with multi-key pool (GOOGLE_API_KEY through GOOGLE_API_KEY_11) and 10-minute 429 cooldowns.
 §
-User has a YouTube upload pipeline at /home/pr3cision/Desktop/video_upload3r and prefers a workflow where the agent handles the upload (using upload_video.py) and returns the Video ID.
+User wants to build a scalable, automated web scraping and content-repurposing pipeline that goes beyond one-off tasks; prefers robust, reusable infrastructure over quick fixes.
 §
-User has a YouTube uploader script at /home/pr3cision/Desktop/video_upload3r/upload_video.py that uses a venv and token.json for authentication.
+User prioritizes local, private, and free solutions for tools (e.g., opted for faster-whisper over paid APIs).
 §
-YouTube uploader script located at /home/pr3cision/Desktop/video_upload3r/upload_video.py. Uses google-api-python-client and requires client_secrets.json and token.json in the same directory.
+User wants to set up a tether between Hermes Agent and 'Pi' for mutual code fixing and system monitoring.
 §
-User has a YouTube upload pipeline using a script at /home/pr3cision/Desktop/video_upload3r/upload_video.py with associated auth tokens in the same folder.
+User prefers direct, clear communication and efficient operation.
 §
-User is utilizing a Linux environment for Hermes Agent and prefers local STT solutions (e.g., faster-whisper) over cloud API keys when possible.
+User prefers a 'Host-Auth, Agent-Deploy' workflow for Shopify Hydrogen tasks because headless agent authentication consistently fails in their environment. Authenticate via local CLI, then allow the agent to run background deployments.
 §
-User wants to transform daily AI news cron jobs into video presentations using Remotion and the agent's TTS for voiceovers.
+User is working on a headless Shopify commerce project using Hydrogen and Oxygen. The user prefers to solve technical blockers through scripted/non-interactive CLI workarounds rather than manual UI interactions. The user is persistent and expects step-by-step progress when long-running background tasks (like deployments) are involved.
 §
-User is actively managing content repurposing pipelines and is encountering API rate limits on the Google AI Studio Free tier for Gemini 2.5 Flash. They are interested in implementing model rotation to manage these quotas.
+User prefers 'fill_first' strategy for model rotation in config.yaml over 'round_robin' to enforce sequential model utilization across keys. User expects direct, efficient operation and prefers manual CLI interaction (host-side) for complex authentication tasks. User is building a scalable Shopify Hydrogen commerce pipeline.
 §
-User synchronizes Hermes Agent configuration (including config.yaml, .env, and custom skills) across multiple devices (laptop, phone, etc.) using a private GitHub repository named 'hermes-config-sync' under the account '3mcdollar3-prog'.
+User provided 7 additional Google API keys, appended to /home/mcdollar3/.hermes/.env as GOOGLE_API_KEY_5 through GOOGLE_API_KEY_11.
+§
+User prefers text/voice hybrid communication and expects step-by-step assistance with Hydrogen storefront development and multi-agent workflows.
+§
+Gemini model rotation: round_robin across 9 ordered models (gemini-3.6-flash to gemma-4-31b-it), sequentially rotating on 429 and wrapping around.

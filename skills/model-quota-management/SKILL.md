@@ -36,6 +36,8 @@ This approach uses a background process (e.g., a cron job) to periodically updat
 - **API Model Support Drift:** Google's available models change frequently. If a rotation job fails with a `404 Not Found` error, the model name may have been deprecated or requires a different API version. Use `ModelService.ListModels` to verify support.
 - **Script/Config Sync:** Ensure model rotation scripts (like `smart_rotate.py`) are strictly synchronized with the models currently defined in `config.yaml` and the Google API's available list. Deprecated models in the rotation list will trigger repeated job failures.
 - **Rotation Validation:** After manual rotation or script changes, always run the script's `status` command (e.g., `python3 ~/.hermes/scripts/smart_rotate.py status`) to confirm the active model is valid and healthy.
+- **Conflicting Cron Jobs:** Never run both a simple sequential rotation job (`rotate.sh`) and a smart quota-aware watchdog (`smart_rotate.py`) concurrently. The sequential script will blindly cycle through models and overwrite the active selection, completely bypassing the smart watchdog's cooldown assignments and rate-limit tracking.
+- **Failure Event Deduping:** To prevent cascading false cooldowns during consecutive manual/automated check runs before a cron error is cleared, rotation scripts should record the unique `last_run_at` timestamp from the failed watchdog job and track it in state to process each distinct error event exactly once.
 
 ## Verification
 

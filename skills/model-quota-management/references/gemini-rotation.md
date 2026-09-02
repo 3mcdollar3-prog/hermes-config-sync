@@ -13,16 +13,20 @@ Instead of exhausting a single model's quota, we cycle through a validated seque
 
 ## Sequence & Models in Pool
 
-The configured model pool typically consists of the following Gemini/Gemma models in order of priority:
+The configured model pool MUST consist of valid, non-deprecated models on the target API version. Example valid pool sequence:
 1. `gemini-3.6-flash`
 2. `gemini-3.5-flash`
 3. `gemini-3.1-flash`
 4. `gemini-3.1-flash-lite`
 5. `gemini-3.1-pro-preview`
-6. `gemini-2.5-flash`
-7. `gemini-2.5-pro`
-8. `gemma-4-26b-a4b-it`
-9. `gemma-4-31b-it`
+
+> **Warning on Deprecated / Invalid Models:** Avoid using deprecated model identifiers (e.g., `gemini-2.5-flash`, which returns HTTP 404 "no longer available to new users") or unmapped model names (e.g., `gemma-4-26b-a4b-it`, which returns HTTP 404 on Google API v1beta). These trigger unexpected watchdog job failures.
+
+### Updating / Purging the Pool
+To update the model list in `~/.hermes/config.yaml` and remove deprecated models without triggering security guards on direct file writes, always use the CLI:
+```bash
+hermes config set credential_pool_strategies.gemini.models '["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.1-flash", "gemini-3.1-flash-lite", "gemini-3.1-pro-preview"]'
+```
 
 ## Implementation
 
@@ -34,6 +38,7 @@ This script implements advanced, limit-aware rotation. It parses `~/.hermes/conf
 #### Key Features:
 - **Rate-Limit Enforcement:** Integrates official Google Model limits (RPM, TPM, RPD) for each model (e.g., Flash limits, Gemma limits).
 - **Auto-Failure Detection:** Parses `~/.hermes/cron/jobs.json` to check if previous runs of the watchdog failed with standard HTTP 429/Resource Exhausted errors. If detected, it automatically places the failed model on a 10-minute cooldown.
+- **Failure Event Deduping:** To prevent cascading false cooldowns during consecutive manual or automated check runs before a cron error is cleared, the script extracts and records the unique `last_run_at` timestamp from the failed job. It tracks this in `model_state.json` under `last_handled_failure_time` so each distinct watchdog error event is processed exactly once.
 - **Explicit Cooldowns:** Temporarily takes rate-limited models out of the rotation sequence.
 
 #### CLI Usage:
@@ -60,8 +65,12 @@ A basic bash-based alternative that loops sequentially through the model array u
 ### Automation (`cronjob`)
 The rotation is scheduled via a local cron job:
 ```bash
-hermes cron create \"every 5m\" --script \"rotate.sh\"
+hermes cron create "every 5m" --script "smart_rotate.py"
 ```
+
+> ### ⚠️ Critical Pitfall: Dual-Rotation Job Conflicts
+> **Do not run both a simple sequential rotation job (`rotate.sh`) and a smart quota-aware watchdog (`smart_rotate.py`) simultaneously.** 
+> If a dumb sequential script runs in parallel, it will blindly overwrite the active model selection, completely bypassing the smart watchdog's cooldown assignments and rate-limit tracking. Ensure only one rotation cron job is active in the system.
 
 ## Verification
 
