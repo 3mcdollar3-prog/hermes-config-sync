@@ -80,6 +80,10 @@ def get_models_from_config():
             pool = json.loads(pool)
         except Exception:
             pool = DEFAULT_MODELS
+    # Ensure gemini-3.1-flash-live-preview is always first if present
+    if "gemini-3.1-flash-live-preview" in pool:
+        pool.remove("gemini-3.1-flash-live-preview")
+    pool.insert(0, "gemini-3.1-flash-live-preview")
     return pool
 
 def get_current_model():
