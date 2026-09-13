@@ -25,5 +25,6 @@ Use this skill when a project was interrupted by a crash or unexpected shutdown.
    - Once the server indicates readiness, access the local preview URL (e.g., `http://localhost:3000`).
 
 ## Pitfalls
+- **Alias/Script Pollution:** When an agent is asked to install or merge with third-party harnesses, it may generate wrapper scripts (e.g., `~/local/bin/pi`) that conflict with the actual project files. If a command causes immediate termination or system errors, check `~/.local/bin/` and `~/.local/lib/node_modules/` for orphaned/misdirected executables from previous failed merges.
 - **Corrupted Lockfiles:** Crash-interrupted package managers often produce broken lockfiles. Always delete and reinstall if `npm run dev` fails with module-related errors.
 - **Ghost Processes:** Check for orphaned processes (`ps aux`) if the new server fails to bind to the port.
