@@ -171,14 +171,15 @@ code_execution:
   mode: project
   timeout: 300
 command_allowlist:
-- sudo with privilege flag (stdin/askpass/shell/list)
-- recursive delete
-- sudo with combined-flag privilege escalation
-- stop/restart hermes gateway (kills running agents)
 - hermes update (restarts gateway, kills running agents)
-- execute_code
-- script execution via -e/-c flag
 - overwrite system file via redirection
+- execute_code
+- sudo with privilege flag (stdin/askpass/shell/list)
+- stop/restart system service
+- script execution via -e/-c flag
+- stop/restart hermes gateway (kills running agents)
+- sudo with combined-flag privilege escalation
+- recursive delete
 compression:
   abort_on_summary_failure: false
   enabled: true
@@ -353,7 +354,7 @@ memory:
 model:
   api_key: '[REDACTED]'
   base_url: https://generativelanguage.googleapis.com/v1beta
-  default: gemini-3.1-flash-lite
+  default: gemini-3.6-flash
   provider: gemini
 model_catalog:
   enabled: true
