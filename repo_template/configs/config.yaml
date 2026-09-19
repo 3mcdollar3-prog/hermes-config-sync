@@ -354,7 +354,7 @@ memory:
 model:
   api_key: '[REDACTED]'
   base_url: https://generativelanguage.googleapis.com/v1beta
-  default: gemini-3.6-flash
+  default: gemma-4-26b-a4b-it
   provider: gemini
 model_catalog:
   enabled: true
