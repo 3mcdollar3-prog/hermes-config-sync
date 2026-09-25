@@ -488,6 +488,8 @@ stt:
   provider: faster-whisper
 telegram:
   allowed_chats: ''
+  dm_policy: open
+  group_policy: open
   reactions: false
 terminal:
   auto_source_bashrc: true

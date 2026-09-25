@@ -1,9 +1,9 @@
 {
-  "last_report_path": "/home/mcdollar3/.hermes/logs/curator/20260918-074137",
-  "last_run_at": "2026-09-18T07:41:37.230965+00:00",
-  "last_run_duration_seconds": 7.817248,
-  "last_run_summary": "auto: 2 reactivated; llm: skipped (consolidation off)",
+  "last_report_path": "/home/mcdollar3/.hermes/logs/curator/20260925-075017",
+  "last_run_at": "2026-09-25T07:50:17.946523+00:00",
+  "last_run_duration_seconds": 41.399857,
+  "last_run_summary": "auto: 37 archived; llm: skipped (consolidation off)",
   "last_run_summary_shown_at": "2026-08-28T05:08:12.644682+00:00",
   "paused": false,
-  "run_count": 13
+  "run_count": 14
 }
