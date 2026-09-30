@@ -485,7 +485,7 @@ stt:
     model: voxtral-mini-latest
   openai:
     model: whisper-1
-  provider: faster-whisper
+  provider: local
 telegram:
   allowed_chats: ''
   dm_policy: open
